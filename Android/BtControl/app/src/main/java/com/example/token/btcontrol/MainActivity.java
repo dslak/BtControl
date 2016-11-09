@@ -74,11 +74,12 @@ public class MainActivity extends AppCompatActivity {
             public void handleMessage(android.os.Message msg){
                 if(msg.what == MESSAGE_READ){
                     String readMessage = null;
-                    try {
-                        readMessage = new String((byte[]) msg.obj, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
+                    //try {
+                        //readMessage = new String((byte[]) msg.obj, "UTF-8");
+                        readMessage = msg.toString();
+                    /*} catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
-                    }
+                    }*/
                     mReadBuffer.setText(readMessage);
                 }
             }
@@ -123,7 +124,9 @@ public class MainActivity extends AppCompatActivity {
                     case MotionEvent.ACTION_UP:
                         // RELEASED
                         motorStop();
-                        return true; // if you want to handle the touch event
+
+
+            return true; // if you want to handle the touch event
                 }
                 return false;
             }
