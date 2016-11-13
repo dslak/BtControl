@@ -1,1 +1,3 @@
 # BtControl
+BtControl is a project includes an Android App and an Arduino shield able to interact with main car controls as engine start and stop, speed, pressure, etc...
+
