@@ -1,11 +1,15 @@
 <resources>
     <string name="app_name">BtControl</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Impostazioni</string>
-    <string name="title_activity_control">btControl</string>
-    <string name="quadro_on">Quadro ON</string>
-    <string name="quadro_off">Quadro OFF</string>
-    <string name="connetti">CONNETTI</string>
-    <string name="disconnetti">DISCONNETTI</string>
+    <string name="connect">DISCONNETTI</string>
+    <string name="status">...</string>
+    <string name="kmh">0 Km/h</string>
+    <string name="bar">0 Bar</string>
+    <string name="rpm">0 RPM</string>
+    <string name="engine">Accensione</string>
+    <string name="console">Quadro ON</string>
+    <string name="label_speed">Speed</string>
+    <string name="label_engine">Engine speed</string>
+    <string name="label_pressure">Pressure</string>
 </resources>

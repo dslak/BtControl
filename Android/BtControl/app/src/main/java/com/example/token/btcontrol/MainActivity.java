@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean isBtConnected = false;
 
 
-    private TextView mReadBuffer;
+    private TextView mReadKm;
+    private TextView mReadRpm;
+    private TextView mReadBar;
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
 
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         Intent newint = getIntent();
         address = newint.getStringExtra(deviceList.EXTRA_ADDRESS); //receive the address of the bluetooth device
 
@@ -67,20 +72,27 @@ public class MainActivity extends AppCompatActivity {
         btnStart = (Button)findViewById(R.id.button3);
         btnDis = (Button)findViewById(R.id.button4);
         statusText = (TextView) findViewById(R.id.textStatus);
-        mReadBuffer = (TextView) findViewById(R.id.readBuffer);
+        mReadKm = (TextView) findViewById(R.id.textKm);
+        mReadRpm = (TextView) findViewById(R.id.textRpm);
+        mReadBar = (TextView) findViewById(R.id.textBar);
 
 
         mHandler = new Handler(){
             public void handleMessage(android.os.Message msg){
                 if(msg.what == MESSAGE_READ){
                     String readMessage = null;
-                    //try {
-                        //readMessage = new String((byte[]) msg.obj, "UTF-8");
-                        readMessage = msg.toString();
-                    /*} catch (UnsupportedEncodingException e) {
+                    try {
+                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
-                    }*/
-                    mReadBuffer.setText(readMessage);
+                    }
+
+                    if(consoleStatus == 1) {
+                        String[] separated = readMessage.split(" ");
+                            if(separated[0]!=null){mReadKm.setText(separated[0].trim() + " Km/h");}
+                            if(separated[1]!=null){mReadRpm.setText(separated[1].trim() + " RPM");}
+                            if(separated[2]!=null){mReadBar.setText(separated[2].trim() + " Bar");}
+                    }
                 }
             }
         };
@@ -118,15 +130,11 @@ public class MainActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch(event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        // PRESSED
                         motorStart();
                         return true; // if you want to handle the touch event
                     case MotionEvent.ACTION_UP:
-                        // RELEASED
                         motorStop();
-
-
-            return true; // if you want to handle the touch event
+                        return true; // if you want to handle the touch event
                 }
                 return false;
             }
@@ -152,8 +160,11 @@ public class MainActivity extends AppCompatActivity {
     private void turnOffConsole(){
         if (btSocket!=null) {
             try {
-                btSocket.getOutputStream().write("CONSOLE\t0\r".toString().getBytes());
+                btSocket.getOutputStream().write("CONSOLE 0".toString().getBytes());
                 consoleStatus = 0;
+                mReadKm.setTextColor(0XFFCCCCCC);
+                mReadRpm.setTextColor(0XFFCCCCCC);
+                mReadBar.setTextColor(0XFFCCCCCC);
                 btnConsole.setBackgroundColor(0xFFFF0000);
                 btnConsole.setText("Quadro OFF");
                 btnStart.setEnabled(false);
@@ -164,8 +175,11 @@ public class MainActivity extends AppCompatActivity {
     private void turnOnConsole(){
         if (btSocket!=null) {
             try {
-                btSocket.getOutputStream().write("CONSOLE\t1\r".toString().getBytes());
+                btSocket.getOutputStream().write("CONSOLE 1".toString().getBytes());
                 consoleStatus = 1;
+                mReadKm.setTextColor(0XFF222222);
+                mReadRpm.setTextColor(0XFF222222);
+                mReadBar.setTextColor(0XFF222222);
                 btnConsole.setBackgroundColor(0xFF00FF00);
                 btnConsole.setText("Quadro ON");
                 btnStart.setEnabled(true);
@@ -176,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
     private void motorStart(){
         if (btSocket!=null) {
             try {
-                btSocket.getOutputStream().write("MOTOR\t1\r".toString().getBytes());
+                btSocket.getOutputStream().write("MOTOR 1".toString().getBytes());
                 btnStart.setBackgroundColor(0xFF00FF00);
                 statusText.setText("Accensione ...");
             }
@@ -187,13 +201,30 @@ public class MainActivity extends AppCompatActivity {
     private void motorStop(){
         if (btSocket!=null) {
             try {
-                btSocket.getOutputStream().write("MOTOR\t0\r".toString().getBytes());
+                btSocket.getOutputStream().write("MOTOR 0".toString().getBytes());
                 btnStart.setBackgroundColor(0xFFCCCCCC);
                 statusText.setText("...");
             }
             catch (IOException e) {msg("Error");}
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -207,19 +238,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -240,8 +265,8 @@ public class MainActivity extends AppCompatActivity {
             try{
                 if (btSocket == null || !isBtConnected){
                     myBluetooth = BluetoothAdapter.getDefaultAdapter();//get the mobile bluetooth device
-                    BluetoothDevice dispositivo = myBluetooth.getRemoteDevice(address);//connects to the device's address and checks if it's available
-                    btSocket = dispositivo.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
+                    BluetoothDevice btDevice = myBluetooth.getRemoteDevice(address);//connects to the device's address and checks if it's available
+                    btSocket = btDevice.createInsecureRfcommSocketToServiceRecord(myUUID);//create a RFCOMM (SPP) connection
                     BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                     btSocket.connect();//start connection
                 }
@@ -273,25 +298,43 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
-        private final OutputStream mmOutStream;
+        //private final OutputStream mmOutStream;
 
         public ConnectedThread(BluetoothSocket socket) {
             mmSocket = socket;
             InputStream tmpIn = null;
-            OutputStream tmpOut = null;
+            //OutputStream tmpOut = null;
 
             // Get the input and output streams, using temp objects because
             // member streams are final
             try {
                 tmpIn = socket.getInputStream();
-                tmpOut = socket.getOutputStream();
+                //tmpOut = socket.getOutputStream();
             } catch (IOException e) { }
 
             mmInStream = tmpIn;
-            mmOutStream = tmpOut;
+            //mmOutStream = tmpOut;
         }
 
         public void run() {
@@ -305,12 +348,12 @@ public class MainActivity extends AppCompatActivity {
                     bytes = mmInStream.read(buffer);
                     if(bytes != 0) {
                         SystemClock.sleep(100);
-                        mmInStream.read(buffer);
+                        
+                        //mReadBuffer.setText(mmInStream.read(buffer));
                     }
                     // Send the obtained bytes to the UI activity
 
-                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
-                            .sendToTarget();
+                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
                     break;
                 }
@@ -318,19 +361,19 @@ public class MainActivity extends AppCompatActivity {
         }
 
         /* Call this from the main activity to send data to the remote device */
-        public void write(String input) {
+        /*public void write(String input) {
             byte[] bytes = input.getBytes();           //converts entered String into bytes
             try {
                 mmOutStream.write(bytes);
             } catch (IOException e) { }
-        }
+        }*/
 
         /* Call this from the main activity to shutdown the connection */
-        public void cancel() {
+        /*public void cancel() {
             try {
                 mmSocket.close();
             } catch (IOException e) { }
-        }
+        }*/
     }
 
 }
