@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.AsyncTask;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +19,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +31,7 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btnConsole, btnStart, btnDis;
+    ImageButton btnConsole, btnStart, btnDis;
     TextView statusText;
     String address = null;
     String btBuffer = null;
@@ -38,10 +41,18 @@ public class MainActivity extends AppCompatActivity {
     BluetoothSocket btSocket = null;
     private boolean isBtConnected = false;
 
-
-    private TextView mReadKm;
     private TextView mReadRpm;
-    private TextView mReadBar;
+    private TextView mReadPres;
+    private TextView mReadFuel;
+    private TextView mReadBatt;
+    private TextView mReadTemp;
+
+    private TextView lReadRpm;
+    private TextView lReadPres;
+    private TextView lReadFuel;
+    private TextView lReadBatt;
+    private TextView lReadTemp;
+
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
 
@@ -60,6 +71,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (Build.VERSION.SDK_INT < 16) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+
 
         Intent newint = getIntent();
         address = newint.getStringExtra(deviceList.EXTRA_ADDRESS); //receive the address of the bluetooth device
@@ -68,13 +84,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //call the widgtes
-        btnConsole = (Button)findViewById(R.id.button2);
-        btnStart = (Button)findViewById(R.id.button3);
-        btnDis = (Button)findViewById(R.id.button4);
+        btnConsole = (ImageButton)findViewById(R.id.buttonConsole);
+        btnStart = (ImageButton)findViewById(R.id.buttonStart);
+        btnDis = (ImageButton)findViewById(R.id.buttonDisconnect);
         statusText = (TextView) findViewById(R.id.textStatus);
-        mReadKm = (TextView) findViewById(R.id.textKm);
+
         mReadRpm = (TextView) findViewById(R.id.textRpm);
-        mReadBar = (TextView) findViewById(R.id.textBar);
+        mReadPres = (TextView) findViewById(R.id.textPres);
+        mReadFuel = (TextView) findViewById(R.id.textFuel);
+        mReadBatt = (TextView) findViewById(R.id.textBattery);
+        mReadTemp = (TextView) findViewById(R.id.textTemp);
+
+        lReadRpm = (TextView) findViewById(R.id.labelRpm);
+        lReadPres = (TextView) findViewById(R.id.labelPres);
+        lReadFuel = (TextView) findViewById(R.id.labelFuel);
+        lReadBatt = (TextView) findViewById(R.id.labelBatt);
+        lReadTemp = (TextView) findViewById(R.id.labelTemp);
 
 
         mHandler = new Handler(){
@@ -89,9 +114,23 @@ public class MainActivity extends AppCompatActivity {
 
                     if(consoleStatus == 1) {
                         String[] separated = readMessage.split(" ");
-                            if(separated[0]!=null){mReadKm.setText(separated[0].trim() + " Km/h");}
-                            if(separated[1]!=null){mReadRpm.setText(separated[1].trim() + " RPM");}
-                            if(separated[2]!=null){mReadBar.setText(separated[2].trim() + " Bar");}
+                        if(separated.length == 6) {
+                            if (separated[0] != null) {
+                                mReadRpm.setText(separated[0].trim());
+                            }
+                            if (separated[1] != null) {
+                                mReadPres.setText(separated[1].trim() + " ");
+                            }
+                            if (separated[2] != null) {
+                                mReadFuel.setText(separated[2].trim() + " %");
+                            }
+                            if (separated[3] != null) {
+                                mReadBatt.setText(separated[3].trim() + " V");
+                            }
+                            if (separated[4] != null) {
+                                mReadTemp.setText(separated[4].trim() + " °");
+                            }
+                        }
                     }
                 }
             }
@@ -162,11 +201,22 @@ public class MainActivity extends AppCompatActivity {
             try {
                 btSocket.getOutputStream().write("CONSOLE 0".toString().getBytes());
                 consoleStatus = 0;
-                mReadKm.setTextColor(0XFFCCCCCC);
-                mReadRpm.setTextColor(0XFFCCCCCC);
-                mReadBar.setTextColor(0XFFCCCCCC);
-                btnConsole.setBackgroundColor(0xFFFF0000);
-                btnConsole.setText("Quadro OFF");
+                mReadRpm.setTextColor(0XFF666666);
+                mReadPres.setTextColor(0XFF666666);
+                mReadFuel.setTextColor(0XFF666666);
+                mReadBatt.setTextColor(0XFF666666);
+                mReadTemp.setTextColor(0XFF666666);
+                statusText.setTextColor(0XFF666666);
+
+                lReadRpm.setTextColor(0XFF666666);
+                lReadPres.setTextColor(0XFF666666);
+                lReadFuel.setTextColor(0XFF666666);
+                lReadBatt.setTextColor(0XFF666666);
+                lReadTemp.setTextColor(0XFF666666);
+
+                btnConsole.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.color_red,this.getTheme())));
+
+                statusText.setText("Quadro OFF");
                 btnStart.setEnabled(false);
             }
             catch (IOException e){msg("Error");}
@@ -177,12 +227,25 @@ public class MainActivity extends AppCompatActivity {
             try {
                 btSocket.getOutputStream().write("CONSOLE 1".toString().getBytes());
                 consoleStatus = 1;
-                mReadKm.setTextColor(0XFF222222);
-                mReadRpm.setTextColor(0XFF222222);
-                mReadBar.setTextColor(0XFF222222);
-                btnConsole.setBackgroundColor(0xFF00FF00);
-                btnConsole.setText("Quadro ON");
+
+                mReadRpm.setTextColor(0XFFFFFFFF);
+                mReadPres.setTextColor(0XFFFFFFFF);
+                mReadFuel.setTextColor(0XFFFFFFFF);
+                mReadBatt.setTextColor(0XFFFFFFFF);
+                mReadTemp.setTextColor(0XFFFFFFFF);
+                statusText.setTextColor(0XFFFFFFFF);
+
+                lReadRpm.setTextColor(0XFFFFFFFF);
+                lReadPres.setTextColor(0XFFFFFFFF);
+                lReadFuel.setTextColor(0XFFFFFFFF);
+                lReadBatt.setTextColor(0XFFFFFFFF);
+                lReadTemp.setTextColor(0XFFFFFFFF);
+
+                btnConsole.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.color_green,this.getTheme())));
+
+                statusText.setText("Quadro ON");
                 btnStart.setEnabled(true);
+
             }
             catch (IOException e) {msg("Error");}
         }
@@ -191,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
         if (btSocket!=null) {
             try {
                 btSocket.getOutputStream().write("MOTOR 1".toString().getBytes());
-                btnStart.setBackgroundColor(0xFF00FF00);
+                btnStart.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.color_green,this.getTheme())));
                 statusText.setText("Accensione ...");
             }
             catch (IOException e) {msg("Error");}
@@ -202,21 +265,12 @@ public class MainActivity extends AppCompatActivity {
         if (btSocket!=null) {
             try {
                 btSocket.getOutputStream().write("MOTOR 0".toString().getBytes());
-                btnStart.setBackgroundColor(0xFFCCCCCC);
-                statusText.setText("...");
+                btnStart.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.color_grey,this.getTheme())));
+                statusText.setText("Quadro ON");
             }
             catch (IOException e) {msg("Error");}
         }
     }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -234,22 +288,6 @@ public class MainActivity extends AppCompatActivity {
     // fast way to call Toast
     private void msg(String s){
         Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private class ConnectBT extends AsyncTask<Void, Void, Void> {
@@ -360,20 +398,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        /* Call this from the main activity to send data to the remote device */
-        /*public void write(String input) {
-            byte[] bytes = input.getBytes();           //converts entered String into bytes
-            try {
-                mmOutStream.write(bytes);
-            } catch (IOException e) { }
-        }*/
-
-        /* Call this from the main activity to shutdown the connection */
-        /*public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) { }
-        }*/
     }
 
 }
