@@ -127,7 +127,8 @@
                 android:textSize="40sp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="5dp"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/border"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -153,7 +154,8 @@
                 android:textSize="40sp"
                 android:layout_gravity="center_vertical"
                 android:layout_margin="5dp"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/border" />
 
         </LinearLayout>
 
@@ -190,7 +192,8 @@
                 android:textSize="40sp"
                 android:layout_margin="5dp"
                 android:layout_gravity="center_vertical"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/border" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -216,7 +219,8 @@
                 android:textSize="40sp"
                 android:layout_margin="5dp"
                 android:layout_gravity="center_vertical"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/border" />
         </LinearLayout>
 
         <LinearLayout
@@ -252,7 +256,8 @@
                 android:textSize="45sp"
                 android:layout_margin="5dp"
                 android:layout_gravity="center_vertical"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:background="@drawable/border" />
         </LinearLayout>
 
     </LinearLayout>

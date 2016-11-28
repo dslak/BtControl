@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnConsole, btnStart, btnDis;
     TextView statusText;
     String address = null;
-    String btBuffer = null;
     int consoleStatus = 0;
     private ProgressDialog progress;
     BluetoothAdapter myBluetooth = null;
@@ -108,30 +107,43 @@ public class MainActivity extends AppCompatActivity {
                     String readMessage = null;
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
+                        if(consoleStatus == 1) {
+                            String[] separated = readMessage.split(" ");
+                            //statusText.setText(separated.length);
+                            if(separated.length == 6) {
+                                if (separated[0] != null) {
+                                    mReadRpm.setText(separated[0].trim());
+                                }
+                                if (separated[1] != null) {
+                                    mReadPres.setText(separated[1].trim() + " ");
+                                }
+                                if (separated[2] != null) {
+                                    mReadFuel.setText(separated[2].trim() + " %");
+                                }
+                                if (separated[3] != null) {
+                                    mReadBatt.setText(separated[3].trim() + " V");
+                                }
+                                if (separated[4] != null) {
+                                    mReadTemp.setText(separated[4].trim() + " °");
+                                }
+                                if (separated[5].trim() != null) {
+
+                                    String a="1";
+                                    String ac = new String("1".getBytes("UTF-8"), "UTF-8");
+
+                                    if (separated[5].trim().equals(ac)) {
+                                        statusText.setTextColor(0XFF00FF00);
+                                    }else{
+                                        statusText.setTextColor(0XFFFFFFFF);
+                                    }
+                                }
+                            }
+                        }
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
 
-                    if(consoleStatus == 1) {
-                        String[] separated = readMessage.split(" ");
-                        if(separated.length == 6) {
-                            if (separated[0] != null) {
-                                mReadRpm.setText(separated[0].trim());
-                            }
-                            if (separated[1] != null) {
-                                mReadPres.setText(separated[1].trim() + " ");
-                            }
-                            if (separated[2] != null) {
-                                mReadFuel.setText(separated[2].trim() + " %");
-                            }
-                            if (separated[3] != null) {
-                                mReadBatt.setText(separated[3].trim() + " V");
-                            }
-                            if (separated[4] != null) {
-                                mReadTemp.setText(separated[4].trim() + " °");
-                            }
-                        }
-                    }
+
                 }
             }
         };
@@ -386,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
                     bytes = mmInStream.read(buffer);
                     if(bytes != 0) {
                         SystemClock.sleep(100);
-                        
+
                         //mReadBuffer.setText(mmInStream.read(buffer));
                     }
                     // Send the obtained bytes to the UI activity
