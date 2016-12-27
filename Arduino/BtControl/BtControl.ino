@@ -11,9 +11,9 @@
 #define btTemp A2
 #define btCont A1
 
-#define rlCons 2
-#define rlStart 13
-#define rlExtra 12
+#define rlCons 13
+#define rlStart 12
+#define rlExtra 2
 
 
 SoftwareSerial BT(btTx, btRx); 
@@ -21,6 +21,7 @@ SoftwareSerial BT(btTx, btRx);
   char strc[1];
   String str;
   int strp;
+  int feedback=0;
 
 
 void setup(){
@@ -63,10 +64,10 @@ void loop(){
       digitalWrite(rlCons,HIGH);
     }
     if(str == "MOTOR 0"){
-      digitalWrite(rlCons,LOW);
+      digitalWrite(rlStart,LOW);
     }
     if(str == "MOTOR 1"){
-      digitalWrite(rlCons,HIGH);
+      digitalWrite(rlStart,HIGH);
     }
       
       
@@ -76,12 +77,17 @@ void loop(){
 
   str="";
 
+    if(analogRead(btCont)>200){
+      feedback=1;
+    }else{
+      feedback=0;
+    }
     str=String(str + pulseIn(btRpm,LOW) + " "
                    + map(analogRead(btPres),0,1023,0,8) + " "
                    + map(analogRead(btFuel),0,1023,0,100) + " "
                    + map(analogRead(btBatt),0,1023,0,12) + " "
                    + map(analogRead(btTemp),0,1023,0,130) + " "
-                   + digitalRead(btCont));
+                   + feedback);
                    
     delay(200);
 
